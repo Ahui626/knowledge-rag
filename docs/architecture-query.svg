@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1150" viewBox="0 0 1500 1150">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748B"/>
+    </marker>
+    <style>
+      text{font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif;fill:#111827}
+      .t{font-size:21px;font-weight:700}
+      .s{font-size:14.5px;fill:#4B5563}
+      .n{font-size:13px;fill:#6B7280}
+      .box{fill:#F8FAFF;stroke:#2F6BFF;stroke-width:2}
+      .recall{fill:#FFF7E8;stroke:#D97706;stroke-width:2}
+      .fusion{fill:#EEF2FF;stroke:#4F46E5;stroke-width:2}
+      .graph{fill:#FFF3F3;stroke:#DC2626;stroke-width:2}
+      .gen{fill:#ECFBF4;stroke:#0F9D6E;stroke-width:2}
+      .out{fill:#F3F4F6;stroke:#6B7280;stroke-width:2}
+      .line{stroke:#64748B;stroke-width:2.2;fill:none}
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1500" height="1150" fill="#FFFFFF"/>
+  <text x="48" y="54" font-size="28" font-weight="700">在线查询：一次提问发生了什么</text>
+  <text x="48" y="84" class="n" font-size="15">两条召回通道并行，RRF 融合后补图谱关系，最后由大模型生成带引用的回答。</text>
+
+  <!-- 用户问题 -->
+  <rect x="570" y="110" width="360" height="70" rx="14" class="box"/>
+  <text x="750" y="142" text-anchor="middle" class="t">用户问题</text>
+  <text x="750" y="165" text-anchor="middle" class="s">例如：APS 审核周期多久？</text>
+
+  <path d="M700 180 L420 245" class="line" marker-end="url(#arrow)"/>
+  <path d="M800 180 L1080 245" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 通道 1 -->
+  <rect x="200" y="245" width="400" height="100" rx="14" class="box"/>
+  <text x="400" y="277" text-anchor="middle" class="t">① 查询向量化</text>
+  <text x="400" y="301" text-anchor="middle" class="s">text-embedding-v3 → 1024 维</text>
+  <text x="400" y="323" text-anchor="middle" class="n">网络调用约 200-400ms</text>
+
+  <!-- 通道 2 -->
+  <rect x="900" y="245" width="400" height="100" rx="14" class="box"/>
+  <text x="1100" y="277" text-anchor="middle" class="t">① 原始查询文本</text>
+  <text x="1100" y="301" text-anchor="middle" class="s">中文分词后交给 BM25</text>
+  <text x="1100" y="323" text-anchor="middle" class="n">不需要额外模型</text>
+
+  <path d="M400 345 L400 420" class="line" marker-end="url(#arrow)"/>
+  <path d="M1100 345 L1100 420" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 召回 -->
+  <rect x="200" y="420" width="400" height="95" rx="14" class="recall"/>
+  <text x="400" y="452" text-anchor="middle" class="t">② 稠密召回 Top10</text>
+  <text x="400" y="476" text-anchor="middle" class="s">dense_vector · COSINE</text>
+  <text x="400" y="497" text-anchor="middle" class="n">擅长同义表达、语义相近</text>
+
+  <rect x="900" y="420" width="400" height="95" rx="14" class="recall"/>
+  <text x="1100" y="452" text-anchor="middle" class="t">② 关键词召回 Top10</text>
+  <text x="1100" y="476" text-anchor="middle" class="s">sparse_vector · BM25</text>
+  <text x="1100" y="497" text-anchor="middle" class="n">擅长专名、数字、条款号</text>
+
+  <path d="M400 515 L620 570" class="line" marker-end="url(#arrow)"/>
+  <path d="M1100 515 L880 570" class="line" marker-end="url(#arrow)"/>
+  <text x="400" y="560" class="n">Top10</text>
+  <text x="1080" y="560" class="n">Top10</text>
+
+  <!-- 融合 -->
+  <rect x="520" y="570" width="460" height="95" rx="14" class="fusion"/>
+  <text x="750" y="602" text-anchor="middle" class="t">③ RRF 融合 · k=60</text>
+  <text x="750" y="626" text-anchor="middle" class="s">只看排名，不看原始分数</text>
+  <text x="750" y="647" text-anchor="middle" class="s">两路 Top10 → 最终 Top6</text>
+
+  <path d="M750 665 L750 720" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 图谱 -->
+  <rect x="520" y="720" width="460" height="95" rx="14" class="graph"/>
+  <text x="750" y="752" text-anchor="middle" class="t">④ 图谱补充</text>
+  <text x="750" y="776" text-anchor="middle" class="s">Top6 块 → 提到的实体</text>
+  <text x="750" y="797" text-anchor="middle" class="s">→ 1 跳关系（最多 30 条）</text>
+
+  <path d="M750 815 L750 870" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 生成 -->
+  <rect x="520" y="870" width="460" height="95" rx="14" class="gen"/>
+  <text x="750" y="902" text-anchor="middle" class="t">⑤ DeepSeek 生成</text>
+  <text x="750" y="926" text-anchor="middle" class="s">只依据资料 + 图谱关系</text>
+  <text x="750" y="947" text-anchor="middle" class="s">结论标 [n]，资料不足就拒答</text>
+
+  <path d="M750 965 L750 1020" class="line" marker-end="url(#arrow)"/>
+  <text x="790" y="1000" class="n">约 2-5s</text>
+
+  <!-- 输出 -->
+  <rect x="520" y="1020" width="460" height="80" rx="14" class="out"/>
+  <text x="750" y="1050" text-anchor="middle" class="t">回答 + 引用原文 + 图谱关系</text>
+  <text x="750" y="1074" text-anchor="middle" class="s">网页同时展示 D / B 两路命中徽标</text>
+
+  <text x="750" y="1130" text-anchor="middle" class="n">全链路耗时主要在大模型生成；检索与图谱查询通常在几十毫秒内。</text>
+</svg>

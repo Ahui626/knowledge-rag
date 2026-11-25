@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1080" viewBox="0 0 1500 1080">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748B"/>
+    </marker>
+    <style>
+      text{font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif;fill:#111827}
+      .t{font-size:21px;font-weight:700}
+      .s{font-size:14.5px;fill:#4B5563}
+      .n{font-size:13px;fill:#6B7280}
+      .box{fill:#F8FAFF;stroke:#2F6BFF;stroke-width:2}
+      .parse{fill:#F7F2FF;stroke:#7C3AED;stroke-width:2}
+      .chunk{fill:#FFF7E8;stroke:#D97706;stroke-width:2}
+      .model{fill:#ECFBF4;stroke:#0F9D6E;stroke-width:2}
+      .line{stroke:#64748B;stroke-width:2.2;fill:none}
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1500" height="1080" fill="#FFFFFF"/>
+  <text x="48" y="54" font-size="28" font-weight="700">离线建库：文档 → 向量库 + 知识图谱</text>
+  <text x="48" y="84" class="n" font-size="15">执行一次 python ingest.py；新增文档后重跑即可。矩形 = 处理步骤，圆柱 = 存储。</text>
+
+  <!-- 阶段标识 -->
+  <rect x="40" y="130" width="8" height="220" rx="4" fill="#2F6BFF"/>
+  <text x="64" y="162" font-size="19" font-weight="700" fill="#2F6BFF">① 解析</text>
+
+  <rect x="40" y="500" width="8" height="240" rx="4" fill="#D97706"/>
+  <text x="64" y="532" font-size="19" font-weight="700" fill="#D97706">② 分块</text>
+
+  <rect x="40" y="790" width="8" height="250" rx="4" fill="#0F9D6E"/>
+  <text x="64" y="822" font-size="19" font-weight="700" fill="#0F9D6E">③ 双写</text>
+
+  <!-- 输入 -->
+  <rect x="180" y="130" width="280" height="70" rx="14" class="box"/>
+  <text x="320" y="162" text-anchor="middle" class="t">doc/*.docx</text>
+  <text x="320" y="185" text-anchor="middle" class="s">4 份政策文档</text>
+
+  <rect x="1040" y="130" width="280" height="70" rx="14" class="box"/>
+  <text x="1180" y="162" text-anchor="middle" class="t">doc/*.pdf</text>
+  <text x="1180" y="185" text-anchor="middle" class="s">1 份国家标准</text>
+
+  <path d="M320 200 L320 250" class="line" marker-end="url(#arrow)"/>
+  <path d="M1180 200 L1180 250" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 解析器 -->
+  <rect x="180" y="250" width="280" height="90" rx="14" class="parse"/>
+  <text x="320" y="282" text-anchor="middle" class="t">python-docx</text>
+  <text x="320" y="306" text-anchor="middle" class="s">标题 / 正文 / 表格</text>
+  <text x="320" y="326" text-anchor="middle" class="s">保持原始顺序</text>
+
+  <rect x="1040" y="250" width="280" height="100" rx="14" class="parse"/>
+  <text x="1180" y="280" text-anchor="middle" class="t">MinerU 2.6.5</text>
+  <text x="1180" y="303" text-anchor="middle" class="s">pipeline 后端</text>
+  <text x="1180" y="323" text-anchor="middle" class="s">版面 / 表格 / 阅读顺序</text>
+  <text x="1180" y="340" text-anchor="middle" class="n">未使用 VLM</text>
+
+  <path d="M460 295 L590 415" class="line" marker-end="url(#arrow)"/>
+  <path d="M1040 300 L910 415" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 统一样式 -->
+  <rect x="590" y="380" width="320" height="90" rx="14" class="box"/>
+  <text x="750" y="412" text-anchor="middle" class="t">统一 blocks</text>
+  <text x="750" y="436" text-anchor="middle" class="s">标题 · 正文 · 表格</text>
+  <text x="750" y="456" text-anchor="middle" class="s">附带页码</text>
+
+  <path d="M750 470 L750 510" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 分块 -->
+  <rect x="570" y="510" width="360" height="100" rx="14" class="chunk"/>
+  <text x="750" y="542" text-anchor="middle" class="t">分块器</text>
+  <text x="750" y="566" text-anchor="middle" class="s">遇到标题先切分</text>
+  <text x="750" y="588" text-anchor="middle" class="s">650 字上限 · 80 字重叠</text>
+
+  <path d="M750 610 L750 660" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="570" y="660" width="360" height="80" rx="14" class="box"/>
+  <text x="750" y="690" text-anchor="middle" class="t">77 个 chunk</text>
+  <text x="750" y="714" text-anchor="middle" class="s">块头带《文档》· 章节 上下文</text>
+
+  <path d="M690 740 L430 790" class="line" marker-end="url(#arrow)"/>
+  <path d="M810 740 L1070 790" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 双写 -->
+  <rect x="250" y="790" width="360" height="90" rx="14" class="model"/>
+  <text x="430" y="822" text-anchor="middle" class="t">text-embedding-v3</text>
+  <text x="430" y="846" text-anchor="middle" class="s">1024 维 · 每批 10 条</text>
+
+  <rect x="890" y="790" width="360" height="90" rx="14" class="model"/>
+  <text x="1070" y="822" text-anchor="middle" class="t">DeepSeek 实体关系抽取</text>
+  <text x="1070" y="846" text-anchor="middle" class="s">11 类实体 · 9 类关系</text>
+
+  <path d="M430 880 L430 930" class="line" marker-end="url(#arrow)"/>
+  <path d="M1070 880 L1070 930" class="line" marker-end="url(#arrow)"/>
+
+  <!-- 存储：Milvus -->
+  <g>
+    <path d="M280 945 L280 1015 A150 18 0 0 0 580 1015 L580 945" fill="#EAF7FD" stroke="#0EA5E9" stroke-width="2"/>
+    <ellipse cx="430" cy="945" rx="150" ry="18" fill="#F7FCFF" stroke="#0EA5E9" stroke-width="2"/>
+    <text x="430" y="975" text-anchor="middle" class="t">Milvus 2.6.3</text>
+    <text x="430" y="998" text-anchor="middle" class="s">dense 1024 + BM25 sparse</text>
+    <text x="430" y="1019" text-anchor="middle" class="n">77 条记录</text>
+  </g>
+
+  <!-- 存储：Neo4j -->
+  <g>
+    <path d="M920 945 L920 1015 A150 18 0 0 0 1220 1015 L1220 945" fill="#FFF3F3" stroke="#DC2626" stroke-width="2"/>
+    <ellipse cx="1070" cy="945" rx="150" ry="18" fill="#FFF8F8" stroke="#DC2626" stroke-width="2"/>
+    <text x="1070" y="975" text-anchor="middle" class="t">Neo4j 5.26</text>
+    <text x="1070" y="998" text-anchor="middle" class="s">Document → Chunk → Entity</text>
+    <text x="1070" y="1019" text-anchor="middle" class="n">449 节点 · 1018 关系 · 367 实体</text>
+  </g>
+
+  <text x="750" y="1062" text-anchor="middle" class="n">参数都可在 .env 或代码中调整；向量维度变化时必须重建 collection。</text>
+</svg>

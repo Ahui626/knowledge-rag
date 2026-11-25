@@ -1,0 +1,6 @@
+mcp[cli]>=2.3
+openai>=1.60
+python-dotenv>=1.0
+fastapi>=0.115
+httpx>=0.28
+pyjwt[crypto]>=2.8

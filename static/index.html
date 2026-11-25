@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>留学政策知识库 · 混合检索 + 知识图谱</title>
+<style>
+  :root{
+    --bg:#f5f6f9; --card:#fff; --ink:#1b2333; --muted:#6b7280;
+    --line:#e5e7eb; --accent:#2f6bff; --accent-soft:#eef3ff;
+    --green:#0f9d6e; --amber:#b45309; --violet:#7c3aed;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif;font-size:14px;line-height:1.65}
+  header{background:linear-gradient(120deg,#101a33,#1e3a8a 55%,#2f6bff);
+    color:#fff;padding:28px 32px 24px}
+  header h1{margin:0 0 6px;font-size:22px;letter-spacing:.5px}
+  header p{margin:0;color:#c7d2fe;font-size:13px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+    padding:3px 10px;border-radius:999px;font-size:12px;color:#e8edff}
+  .chip b{color:#fff}
+  main{max-width:1080px;margin:-14px auto 48px;padding:0 20px}
+  .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:6px;box-shadow:0 6px 20px rgba(16,26,51,.06)}
+  .tab{flex:1;border:0;background:transparent;padding:9px 12px;border-radius:8px;
+    font-size:14px;cursor:pointer;color:var(--muted);font-family:inherit}
+  .tab.active{background:var(--accent);color:#fff;font-weight:600}
+  .panel{display:none;margin-top:16px}
+  .panel.active{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;box-shadow:0 6px 20px rgba(16,26,51,.05);margin-bottom:14px}
+  .row{display:flex;gap:10px}
+  input[type=text]{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:9px;
+    font-size:14px;font-family:inherit;outline:none;background:#fbfcfe}
+  input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  button.primary{padding:11px 22px;border:0;border-radius:9px;background:var(--accent);
+    color:#fff;font-size:14px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  button.primary:disabled{opacity:.55;cursor:wait}
+  button.ghost{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;
+    color:var(--muted);cursor:pointer;font-family:inherit;font-size:13px}
+  .hint{color:var(--muted);font-size:12px;margin-top:8px}
+  .error{background:#fff1f0;border:1px solid #ffccc7;color:#b42318;padding:10px 14px;
+    border-radius:8px;margin-top:12px;font-size:13px}
+  .result{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:10px;background:#fff}
+  .result .top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+  .doc{font-weight:600}
+  .score{font-family:Consolas,monospace;font-size:12px;color:var(--muted)}
+  .badges{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+  .badge{font-size:11px;padding:2px 7px;border-radius:5px;background:#f3f4f6;color:#4b5563}
+  .badge.d{background:#eef3ff;color:#2f6bff}
+  .badge.s{background:#ecfdf5;color:#0f9d6e}
+  .text{margin-top:8px;color:#374151;font-size:13px;white-space:pre-wrap;word-break:break-word}
+  .section{color:var(--muted);font-size:12px}
+  .answer{white-space:pre-wrap;word-break:break-word;font-size:14px}
+  .answer .cite{color:var(--accent);font-size:11px;vertical-align:super;font-weight:700}
+  .cite-item{display:flex;gap:10px;padding:10px 0;border-top:1px dashed var(--line);font-size:13px}
+  .cite-item:first-child{border-top:0}
+  .cite-no{color:var(--accent);font-weight:700}
+  .triple{font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .triple:last-child{border-bottom:0}
+  .rel{color:var(--violet);font-weight:600;padding:0 6px}
+  .type{color:var(--muted);font-size:11px}
+  .graph-wrap{position:relative;background:#fbfcff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  svg{display:block;width:100%;height:auto}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  pre{background:#0f172a;color:#dbeafe;padding:12px 14px;border-radius:8px;overflow:auto;font-size:12.5px}
+  h3{margin:0 0 6px;font-size:15px}
+  h4{margin:14px 0 4px;font-size:13.5px}
+  .muted{color:var(--muted)}
+  @media (max-width:760px){.grid{grid-template-columns:1fr}.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <h1>留学政策知识库</h1>
+  <p>Milvus 混合检索（text-embedding-v3 + BM25 / RRF） · Neo4j 知识图谱 · MinerU 文档解析</p>
+  <div class="chips">
+    <span class="chip">向量块 <b id="statChunks">-</b></span>
+    <span class="chip">图谱实体 <b id="statEntities">-</b></span>
+    <span class="chip">图谱关系 <b id="statRelations">-</b></span>
+    <span class="chip">向量模型 <b id="statModel">-</b></span>
+  </div>
+</header>
+<main>
+  <div class="tabs">
+    <button class="tab active" data-tab="search">混合检索</button>
+    <button class="tab" data-tab="chat">问答</button>
+    <button class="tab" data-tab="graph">知识图谱</button>
+    <button class="tab" data-tab="help">使用说明</button>
+  </div>
+
+  <section class="panel active" id="panel-search">
+    <div class="card">
+      <div class="row">
+        <input id="searchInput" type="text" placeholder="例如：德国公立大学非欧盟学生要交学费吗？">
+        <button class="primary" id="searchBtn">检索</button>
+      </div>
+      <div class="hint">同时跑向量召回与 BM25 关键词召回，再用 RRF 融合排序。结果中的 D / B 表示两路是否命中。</div>
+    </div>
+    <div id="searchError"></div>
+    <div id="searchResults"></div>
+  </section>
+
+  <section class="panel" id="panel-chat">
+    <div class="card">
+      <div class="row">
+        <input id="chatInput" type="text" placeholder="例如：APS 审核需要哪些材料？周期多久？">
+        <button class="primary" id="chatBtn">提问</button>
+      </div>
+      <div class="hint">检索到的段落与图谱关系一起送入大模型，回答带 [编号] 引用。</div>
+    </div>
+    <div id="chatError"></div>
+    <div id="chatResult"></div>
+  </section>
+
+  <section class="panel" id="panel-graph">
+    <div class="card">
+      <div class="row">
+        <input id="graphInput" type="text" placeholder="输入实体名，如：海德堡大学 / 巴登-符腾堡州 / APS">
+        <button class="primary" id="graphBtn">查图谱</button>
+        <button class="ghost" id="graphAllBtn">看全图</button>
+      </div>
+      <div class="hint">实体来自文档抽取，关系类型受白名单约束。点击节点可继续下钻。</div>
+      <div class="graph-wrap" style="margin-top:12px">
+        <svg id="graphSvg" viewBox="0 0 880 460" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="legend" id="graphLegend"></div>
+    </div>
+    <div class="card">
+      <h3>关系明细</h3>
+      <div id="tripleList" class="muted">暂无数据，点“看全图”或输入实体查询。</div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-help">
+    <div class="card">
+      <h3>整套系统怎么跑</h3>
+      <h4>1. 填 key</h4>
+      <p class="muted">编辑项目根目录的 <code>.env</code>：<code>EMBEDDING_API_KEY</code> 必填（text-embedding-v3）；<code>LLM_API_KEY</code> 用于问答，不填也能做检索。</p>
+      <h4>2. 启动数据库</h4>
+      <pre>docker compose up -d
+docker compose ps</pre>
+      <h4>3. 建库（解析 + 向量化 + 图谱）</h4>
+      <pre>python ingest.py</pre>
+      <h4>4. 启动网页</h4>
+      <pre>uvicorn server:app --host 127.0.0.1 --port 8000</pre>
+      <p class="muted">浏览器打开 http://127.0.0.1:8000 。以后新增文档：放进 <code>doc/</code> 后重新执行 <code>python ingest.py</code>。</p>
+      <h4>数据流</h4>
+      <pre>doc/*.docx ── python-docx ─┐
+doc/*.pdf  ── MinerU ──────┤→ 分块 → text-embedding-v3 → Milvus(dense)
+                           │                    └→ BM25 稀疏向量
+                           └→ 实体关系抽取 → Neo4j
+查询 → dense + BM25 → RRF 融合 → 图谱扩增 → 大模型回答</pre>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const COLORS = {Country:"#2f6bff",Region:"#0f9d6e",University:"#7c3aed",Program:"#db2777",
+  Degree:"#0891b2",Exam:"#d97706",Fee:"#b45309",Visa:"#dc2626",
+  Requirement:"#4b5563",Scholarship:"#059669",Organization:"#6d28d9"};
+
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
+  t.classList.add("active");
+  $("panel-" + t.dataset.tab).classList.add("active");
+  if (t.dataset.tab === "graph") loadOverview();
+  refreshStats();
+});
+
+async function api(path, body) {
+  const opt = body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {};
+  const res = await fetch(path, opt);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || ("HTTP " + res.status));
+  return data;
+}
+
+async function refreshStats(){
+  try{
+    const s = await api("/api/stats");
+    $("statChunks").textContent = s.chunks;
+    $("statEntities").textContent = s.graph.entities;
+    $("statRelations").textContent = s.graph.relations;
+    $("statModel").textContent = s.model;
+  }catch(e){}
+}
+
+function renderSearch(data){
+  const box = $("searchResults");
+  if(!data.results.length){ box.innerHTML = '<div class="card muted">没有召回结果，检查向量库是否已入库。</div>'; return; }
+  box.innerHTML = data.results.map((r,i) => `
+    <div class="result card" style="margin-bottom:10px">
+      <div class="top">
+        <div><span class="doc">${esc(r.doc_title)}</span>
+          <div class="section">${esc((r.text.split("\n")[0]||"").slice(0,80))}</div></div>
+        <div class="score">RRF ${Number(r.score).toFixed(5)}</div>
+      </div>
+      <div class="badges">
+        ${r.hit_dense ? '<span class="badge d">D 向量命中</span>' : ''}
+        ${r.hit_sparse ? '<span class="badge s">B BM25 命中</span>' : ''}
+        <span class="badge">chunk ${esc(r.chunk_id.split("::").pop())}</span>
+      </div>
+      <div class="text">${esc(r.text)}</div>
+    </div>`).join("");
+}
+
+$("searchBtn").onclick = async () => {
+  const q = $("searchInput").value.trim();
+  if(!q) return;
+  $("searchBtn").disabled = true; $("searchError").innerHTML = "";
+  try{
+    renderSearch(await api("/api/search", {query:q}));
+  }catch(e){ $("searchError").innerHTML = `<div class="error">${esc(e.message)}</div>`; }
+  finally{ $("searchBtn").disabled = false; refreshStats(); }
+};
+$("searchInput").onkeydown = (e) => { if(e.key === "Enter") $("searchBtn").click(); };
+
+function citeMarkup(text){
+  const safe = esc(text);
+  return safe.replace(/\[(\d+)\]/g, '<span class="cite">[$1]</span>');
+}
+
+$("chatBtn").onclick = async () => {
+  const q = $("chatInput").value.trim();
+  if(!q) return;
+  $("chatBtn").disabled = true; $("chatError").innerHTML = "";
+  $("chatResult").innerHTML = '<div class="card muted">正在检索并生成回答…</div>';
+  try{
+    const d = await api("/api/chat", {query:q});
+    let html = '<div class="card"><h3>回答</h3>';
+    if(d.answer){
+      html += `<div class="answer">${citeMarkup(d.answer)}</div>`;
+    }else{
+      html += `<div class="error">未配置 LLM_API_KEY，当前只返回检索结果，请在 .env 中填写后重启服务。</div>`;
+    }
+    html += '</div>';
+    if(d.triples && d.triples.length){
+      html += '<div class="card"><h3>用到的图谱关系</h3>' +
+        d.triples.map(t => `<div class="triple">${esc(t.head)} <span class="type">${esc(t.head_type)}</span><span class="rel">${esc(t.relation)}</span>${esc(t.tail)} <span class="type">${esc(t.tail_type)}</span></div>`).join("") +
+        '</div>';
+    }
+    html += '<div class="card"><h3>引用来源</h3>' +
+      d.citations.map(c => `<div class="cite-item"><span class="cite-no">[${c.n}]</span>
+        <div><div class="doc">${esc(c.doc_title)}</div>
+        <div class="section">chunk ${esc(c.chunk_id)}</div>
+        <div class="text">${esc(c.text.slice(0,260))}${c.text.length>260?"…":""}</div></div></div>`).join("") +
+      '</div>';
+    $("chatResult").innerHTML = html;
+  }catch(e){ $("chatError").innerHTML = `<div class="error">${esc(e.message)}</div>`; $("chatResult").innerHTML = ""; }
+  finally{ $("chatBtn").disabled = false; refreshStats(); }
+};
+$("chatInput").onkeydown = (e) => { if(e.key === "Enter") $("chatBtn").click(); };
+
+function drawGraph(data){
+  const svg = $("graphSvg");
+  const W = 880, H = 460;
+  if(!data.nodes.length){
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#9ca3af">暂无图谱数据，先执行 ingest.py</text>`;
+    $("tripleList").innerHTML = '<span class="muted">暂无数据。</span>';
+    return;
+  }
+  const nodes = data.nodes.slice(0, 24);
+  const ids = new Set(nodes.map(n => n.id));
+  const links = data.links.filter(l => ids.has(l.source) && ids.has(l.target) && l.source !== l.target).slice(0, 50);
+  const cx = W/2, cy = H/2, rx = W*0.36, ry = H*0.34;
+  const pos = {};
+  nodes.forEach((n,i) => {
+    const a = (i / nodes.length) * Math.PI * 2 - Math.PI/2;
+    pos[n.id] = {x: cx + rx*Math.cos(a), y: cy + ry*Math.sin(a), n};
+  });
+  let g = "";
+  links.forEach(l => {
+    const a = pos[l.source], b = pos[l.target];
+    if(!a || !b) return;
+    g += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#c7d2e5" stroke-width="1.2"/>`;
+    g += `<text x="${(a.x+b.x)/2}" y="${(a.y+b.y)/2}" fill="#8b93a7" font-size="9" text-anchor="middle">${esc(l.relation)}</text>`;
+  });
+  nodes.forEach(n => {
+    const p = pos[n.id], c = COLORS[n.type] || "#4b5563";
+    g += `<g style="cursor:pointer" onclick="searchEntity('${esc(n.name).replace(/'/g,"\\'")}')">
+      <circle cx="${p.x}" cy="${p.y}" r="17" fill="${c}" fill-opacity=".14" stroke="${c}" stroke-width="2"/>
+      <text x="${p.x}" y="${p.y+34}" text-anchor="middle" font-size="12" fill="#1b2333">${esc(n.name.length>12?n.name.slice(0,12)+"…":n.name)}</text>
+      <text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="9" fill="${c}">${esc((n.type||"").slice(0,6))}</text>
+    </g>`;
+  });
+  svg.innerHTML = g;
+  $("graphLegend").innerHTML = Object.entries(COLORS).slice(0,8)
+    .map(([k,v]) => `<span><i class="dot" style="background:${v}"></i>${k}</span>`).join("");
+  $("tripleList").innerHTML = data.links.slice(0, 40).map(l => {
+    const hn = (nodes.find(n=>n.id===l.source)||{}).name || l.source;
+    const tn = (nodes.find(n=>n.id===l.target)||{}).name || l.target;
+    return `<div class="triple">${esc(hn)}<span class="rel">${esc(l.relation)}</span>${esc(tn)}</div>`;
+  }).join("") || '<span class="muted">没有关系</span>';
+}
+
+async function loadOverview(){
+  try{ drawGraph(await api("/api/graph/overview")); }catch(e){ $("tripleList").innerHTML = `<span class="error">${esc(e.message)}</span>`; }
+}
+window.searchEntity = function(name){
+  $("graphInput").value = name;
+  $("graphBtn").click();
+};
+$("graphBtn").onclick = async () => {
+  const q = $("graphInput").value.trim();
+  if(!q) return;
+  try{ drawGraph(await api("/api/graph/search?q=" + encodeURIComponent(q))); }catch(e){ alert(e.message); }
+};
+$("graphAllBtn").onclick = () => loadOverview();
+
+refreshStats();
+</script>
+</body>
+</html>

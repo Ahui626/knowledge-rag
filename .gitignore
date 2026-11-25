@@ -1,0 +1,39 @@
+# ===== Python 虚拟环境 =====
+.venv/
+.venv-mineru/
+mcp_demo/.venv/
+**/.venv/
+
+# ===== Python 缓存与构建 =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# ===== 敏感配置（含真实 API Key，严禁上传）=====
+.env
+
+# ===== 数据与生成物（模型缓存 / 解析结果 / 下载 / benchmark）=====
+data/
+
+# ===== 本机相关配置（含本机绝对路径）=====
+mineru.json
+
+# ===== 本地生成的密钥（首次运行自动生成，切勿提交）=====
+mcp_demo/oauth_demo/keys/
+
+# ===== 临时笔记 =====
+command.md
+
+# ===== IDE / 编辑器 / 工具 =====
+.idea/
+.vscode/
+.screenshots/
+.trae-html-share-packages/
+*.log
+
+# ===== 系统文件 =====
+.DS_Store
+Thumbs.db
